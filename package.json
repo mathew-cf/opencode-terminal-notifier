@@ -1,9 +1,13 @@
 {
   "name": "@mathew-cf/opencode-terminal-notifier",
-  "version": "0.1.5",
+  "version": "0.1.2",
   "description": "OpenCode plugin that sends native terminal notifications (bell, OSC escape sequences) when events occur",
   "author": "mat",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mathew-cf/opencode-terminal-notifier"
+  },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
