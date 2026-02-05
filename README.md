@@ -16,7 +16,7 @@ Add one line to your OpenCode config file (`opencode.json` or `opencode.jsonc`):
 
 ```json
 {
-  "plugin": ["@mathew-cf/opencode-terminal-notifier@0.1.3"]
+  "plugin": ["@mathew-cf/opencode-terminal-notifier@0.1.4"]
 }
 ```
 
