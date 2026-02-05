@@ -1,39 +1,18 @@
 # opencode-terminal-notifier
 
-OpenCode plugin that sends native terminal notifications when permission is needed, generation completes, errors occur, or the question tool is invoked.
+Get notified when OpenCode needs your attention - even when you've switched to another app.
 
-Unlike system notification plugins, this uses terminal escape sequences that work directly in your terminal emulator - no external dependencies required.
+This plugin alerts you with a sound, dock bounce, or desktop notification when:
+- OpenCode needs permission to proceed
+- A task finishes
+- An error occurs
+- OpenCode has a question for you
 
-> **Note:** These notifications are most useful when your terminal is out of focus (e.g., you've switched to another app). The bell will alert you via sound or dock bounce, and OSC notifications will show system notifications - allowing you to know when OpenCode needs attention without constantly watching the terminal.
-
-## Notification Methods
-
-| Method | Description | Terminal Support |
-|--------|-------------|------------------|
-| `auto` | Auto-detect best method (default) | See below |
-| `bell` | Terminal bell (BEL character) | All terminals |
-| `osc9` | OSC 9 notifications | iTerm2 |
-| `osc777` | OSC 777 notifications | Ghostty, rxvt-unicode, urxvt |
-| `osc99` | OSC 99 desktop notifications | Kitty, WezTerm, foot |
-
-### Auto-detection
-
-When `method` is set to `"auto"` (the default), the plugin reads `TERM_PROGRAM` to detect your terminal and choose the best notification method:
-
-| Terminal | TERM_PROGRAM | Method Used |
-|----------|--------------|-------------|
-| Kitty | `kitty` | `osc99` |
-| WezTerm | `wezterm` | `osc99` |
-| foot | `foot` | `osc99` |
-| Ghostty | `ghostty` | `osc777` |
-| iTerm2 | `iTerm.app` | `osc9` |
-| All others | — | `bell` |
-
-This means you typically don't need any configuration - the plugin will automatically use desktop notifications if your terminal supports them, or fall back to the terminal bell.
+No setup required for most users. Just install and go.
 
 ## Installation
 
-Add the plugin to your `opencode.json` or `opencode.jsonc`:
+Add one line to your OpenCode config file (`opencode.json` or `opencode.jsonc`):
 
 ```json
 {
@@ -41,70 +20,36 @@ Add the plugin to your `opencode.json` or `opencode.jsonc`:
 }
 ```
 
-Or for a specific version:
+Then restart OpenCode. That's it!
 
-```json
-{
-  "plugin": ["@mathew-cf/opencode-terminal-notifier@0.1.0"]
-}
-```
+> **Where's my config file?** It's usually at `~/.config/opencode/opencode.json` (Mac/Linux) or in your project folder.
 
-Restart OpenCode. The plugin will be automatically installed and loaded.
+## How It Works
 
-## Configuration
+When you switch away from your terminal to do other work, this plugin will get your attention when OpenCode needs you:
 
-To customize the plugin, create `~/.config/opencode/terminal-notifier.json`:
+- **Sound or dock bounce** - Works in any terminal
+- **Desktop notifications** - Appear in your notification center (supported terminals only)
+
+The plugin automatically detects your terminal and uses the best notification method available.
+
+### Supported Terminals
+
+| Terminal | What You'll Get |
+|----------|-----------------|
+| **Ghostty** | Desktop notifications |
+| **iTerm2** | Desktop notifications |
+| **Kitty** | Desktop notifications |
+| **WezTerm** | Desktop notifications |
+| **All others** | Sound + dock bounce |
+
+## Configuration (Optional)
+
+The plugin works without any configuration. But if you want to customize it, create a file at `~/.config/opencode/terminal-notifier.json`:
 
 ```json
 {
   "enabled": true,
-  "method": "auto",
-  "showProjectName": true,
-  "events": {
-    "permission": { "enabled": true },
-    "complete": { "enabled": true },
-    "subagent_complete": { "enabled": false },
-    "error": { "enabled": true },
-    "question": { "enabled": true }
-  },
-  "messages": {
-    "permission": "Session needs permission",
-    "complete": "Session has finished",
-    "subagent_complete": "Subagent task completed",
-    "error": "Session encountered an error",
-    "question": "Session has a question"
-  }
-}
-```
-
-### Options
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `enabled` | boolean | `true` | Global toggle for all notifications |
-| `method` | string | `"auto"` | Notification method (`auto`, `bell`, `osc9`, `osc777`, `osc99`) |
-| `showProjectName` | boolean | `true` | Include project folder name in notification title |
-
-### Events
-
-Control notifications separately for each event:
-
-```json
-{
-  "events": {
-    "permission": { "enabled": true, "method": "osc9" },
-    "complete": { "enabled": true },
-    "subagent_complete": { "enabled": false },
-    "error": { "enabled": true, "method": "bell" },
-    "question": { "enabled": true }
-  }
-}
-```
-
-Or use a boolean to toggle:
-
-```json
-{
   "events": {
     "permission": true,
     "complete": true,
@@ -115,113 +60,202 @@ Or use a boolean to toggle:
 }
 ```
 
-Each event can override the global `method` setting.
+### Turn Off Specific Notifications
 
-### Messages
+Don't want to be notified when tasks complete? Just disable that event:
 
-Customize notification text:
+```json
+{
+  "events": {
+    "complete": false
+  }
+}
+```
+
+### Customize Notification Messages
 
 ```json
 {
   "messages": {
     "permission": "Action required",
     "complete": "Done!",
-    "subagent_complete": "Subagent finished",
     "error": "Something went wrong",
     "question": "Input needed"
   }
 }
 ```
 
-## Terminal Setup
+### All Options
 
-### Bell (`bell`)
-
-Works out of the box on all terminals. When the terminal is **out of focus**, your terminal may:
-- Play a system sound
-- Flash the window/tab
-- Bounce the dock icon (macOS)
-- Show in the taskbar (Windows/Linux)
-
-Configure bell behavior in your terminal's preferences. Most terminals have options for what happens when a bell is received while the window is not focused.
-
-### iTerm2 (`osc9`)
-
-1. Open **iTerm2 > Preferences > Profiles > Terminal**
-2. Check **"Enable notifications"** or configure notification triggers
-3. Set `"method": "osc9"` in your config
-
-### Kitty (`osc99`)
-
-Kitty supports desktop notifications natively. Set `"method": "osc99"` in your config.
-
-See [Kitty Desktop Notifications](https://sw.kovidgoyal.net/kitty/desktop-notifications/) for more options.
-
-### Ghostty (`osc777`)
-
-Ghostty supports OSC 777 desktop notifications natively. The plugin will auto-detect Ghostty and use this method automatically.
-
-### rxvt-unicode (`osc777`)
-
-If using rxvt-unicode with a notification extension, set `"method": "osc777"`.
-
-## Comparison with opencode-notifier
-
-| Feature | opencode-notifier | opencode-terminal-notifier |
-|---------|-------------------|----------------------------|
-| System notifications | Yes | No (uses terminal escapes) |
-| Sound support | Yes (bundled WAV files) | No (use terminal bell) |
-| External dependencies | `node-notifier` | None |
-| Custom commands | Yes | No |
-| Works in all terminals | N/A | Bell works everywhere |
-| Zero config notifications | via OS | via terminal |
-
-This plugin is ideal if you:
-- Want lightweight, dependency-free notifications
-- Prefer terminal-native solutions
-- Use a terminal that supports OSC notifications
-- Just need a simple bell/alert when tasks complete
-- Often switch away from the terminal while waiting for OpenCode to finish
+| Option | Default | Description |
+|--------|---------|-------------|
+| `enabled` | `true` | Turn all notifications on/off |
+| `method` | `"auto"` | How to notify (usually leave as `auto`) |
+| `showProjectName` | `true` | Show project folder name in notifications |
 
 ## Troubleshooting
 
-### Check which method auto-detection chooses
+### I don't hear anything
 
-To see what `TERM_PROGRAM` your terminal sets (which determines auto-detection):
+1. Make sure your system volume isn't muted
+2. Check your terminal's sound/bell settings (look in Preferences)
+3. Some terminals flash the screen instead of playing a sound - this is called "visual bell"
+
+### Desktop notifications aren't showing
+
+1. Make sure your terminal has notification permissions (check System Settings > Notifications on Mac)
+2. Your terminal might not support desktop notifications - the plugin will fall back to sound/dock bounce
+
+### Test if it's working
+
+Run this command, then quickly switch to another app:
+
+```bash
+sleep 2 && echo -e "\a"
+```
+
+If your terminal is set up correctly, you'll hear a sound or see your dock icon bounce after 2 seconds.
+
+---
+
+## Advanced Configuration
+
+<details>
+<summary>Click to expand advanced options</summary>
+
+### Notification Methods
+
+The plugin supports several notification methods:
+
+| Method | Description | Terminals |
+|--------|-------------|-----------|
+| `auto` | Automatically choose the best method | All |
+| `bell` | Terminal bell (sound/visual) | All |
+| `osc9` | Desktop notifications | iTerm2 |
+| `osc777` | Desktop notifications | Ghostty, rxvt-unicode |
+| `osc99` | Desktop notifications | Kitty, WezTerm, foot |
+
+### Per-Event Method Override
+
+Use a different notification method for specific events:
+
+```json
+{
+  "events": {
+    "permission": { "enabled": true, "method": "osc9" },
+    "complete": { "enabled": true },
+    "error": { "enabled": true, "method": "bell" },
+    "question": { "enabled": true }
+  }
+}
+```
+
+### Terminal-Specific Setup
+
+#### iTerm2
+
+1. Open **iTerm2 > Preferences > Profiles > Terminal**
+2. Enable **"Notifications"** or configure notification triggers
+
+#### Kitty
+
+Works automatically. See [Kitty Desktop Notifications](https://sw.kovidgoyal.net/kitty/desktop-notifications/) for advanced options.
+
+#### Ghostty
+
+Works automatically with OSC 777 notifications.
+
+### Check Your Terminal Type
+
+To see what terminal the plugin detects:
 
 ```bash
 echo $TERM_PROGRAM
 ```
 
-### Bell not working
+### Test Specific Notification Methods
 
-1. Check your terminal's bell settings (often under Preferences > Terminal or Audio)
-2. Make sure system volume is not muted
-3. Some terminals have "visual bell" - check if the window flashes instead
-
-### OSC notifications not showing
-
-1. Verify your terminal supports the chosen OSC method
-2. Check terminal notification permissions in System Preferences (macOS)
-3. Try using `bell` as a fallback
-
-### Testing notifications
-
-You can test terminal escape sequences directly. **Switch to another application after running the command** to see the notification effect (dock bounce, system notification, etc.):
+Switch to another app after running these commands:
 
 ```bash
-# Test bell - switch away from terminal within 2 seconds to see the effect
+# Test bell
 sleep 2 && echo -e "\a"
 
-# Test OSC 9 (iTerm2) - switch away from terminal within 2 seconds
+# Test OSC 9 (iTerm2)
 sleep 2 && echo -e "\e]9;Test notification\e\\"
 
-# Test OSC 99 (Kitty) - switch away from terminal within 2 seconds
+# Test OSC 99 (Kitty)
 sleep 2 && echo -e "\e]99;d=0;Test notification\e\\"
 ```
 
-These tests give you 2 seconds to switch to another app before the notification fires, so you can verify your terminal alerts you when it's not focused.
+</details>
+
+---
+
+## Comparison with opencode-notifier
+
+| | opencode-notifier | opencode-terminal-notifier |
+|---|-------------------|----------------------------|
+| Desktop notifications | Yes (via OS) | Yes (via terminal) |
+| Sound support | Bundled sounds | Terminal bell |
+| Dependencies | `node-notifier` | None |
+| Setup complexity | More options | Simpler |
+
+Choose **this plugin** if you want something lightweight that just works. Choose **opencode-notifier** if you want more control over system notifications and custom sounds.
+
+---
+
+## Development
+
+Want to contribute or modify this plugin? Here's how to set it up locally.
+
+### Prerequisites
+
+- [Bun](https://bun.sh/) v1.0 or later
+
+### Setup
+
+```bash
+git clone https://github.com/mathew-cf/opencode-terminal-notifier.git
+cd opencode-terminal-notifier
+bun install
+```
+
+### Build
+
+```bash
+bun run build
+```
+
+### Type Check
+
+```bash
+bun run typecheck
+```
+
+### Project Structure
+
+```
+src/
+  index.ts     # Plugin entry point and event handlers
+  config.ts    # Configuration loading and validation
+  notify.ts    # Notification methods (bell, OSC sequences)
+dist/          # Compiled output (generated by build)
+```
+
+### Test Locally
+
+1. Build the plugin: `bun run build`
+2. Point OpenCode to your local copy:
+   ```json
+   {
+     "plugin": ["/path/to/opencode-terminal-notifier"]
+   }
+   ```
+3. Restart OpenCode
+
+---
 
 ## License
 
-MIT
+Apache 2.0

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "OpenCode plugin that sends native terminal notifications (bell, OSC escape sequences) when events occur",
   "author": "mat",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
