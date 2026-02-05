@@ -52,7 +52,7 @@ The plugin works without any configuration. But if you want to customize it, cre
   "enabled": true,
   "events": {
     "permission": true,
-    "complete": true,
+    "complete": false,
     "subagent_complete": false,
     "error": true,
     "question": true
