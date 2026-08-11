@@ -4,6 +4,8 @@ import { loadConfig, isEventEnabled, getEventMethod, getMessage } from "./config
 import type { EventType, NotifierConfig } from "./config"
 import { sendNotification } from "./notify"
 
+const PERMISSION_GRACE_PERIOD_MS = 1000
+
 function getNotificationTitle(config: NotifierConfig, projectName: string | null): string {
   if (config.showProjectName && projectName) {
     return `OpenCode (${projectName})`
@@ -51,6 +53,24 @@ async function isChildSession(
 export const TerminalNotifierPlugin: Plugin = async ({ client, directory }) => {
   const config = loadConfig()
   const projectName = directory ? basename(directory) : null
+  const pendingPermissions = new Map<string, ReturnType<typeof setTimeout>>()
+
+  function schedulePermission(requestID: string): void {
+    if (pendingPermissions.has(requestID)) return
+
+    const timer = setTimeout(() => {
+      pendingPermissions.delete(requestID)
+      handleEvent(config, "permission", projectName)
+    }, PERMISSION_GRACE_PERIOD_MS)
+    pendingPermissions.set(requestID, timer)
+  }
+
+  function cancelPermission(requestID: string): void {
+    const timer = pendingPermissions.get(requestID)
+    if (!timer) return
+    clearTimeout(timer)
+    pendingPermissions.delete(requestID)
+  }
 
   // Don't set up hooks if notifications are globally disabled
   if (!config.enabled) {
@@ -60,11 +80,17 @@ export const TerminalNotifierPlugin: Plugin = async ({ client, directory }) => {
   return {
     event: async ({ event }) => {
       if (event.type === "permission.updated") {
-        handleEvent(config, "permission", projectName)
+        schedulePermission(event.properties.id)
       }
 
       if ((event as any).type === "permission.asked") {
-        handleEvent(config, "permission", projectName)
+        schedulePermission((event as any).properties.id)
+      }
+
+      if (event.type === "permission.replied") {
+        const properties = event.properties as { requestID?: string; permissionID?: string }
+        const requestID = properties.requestID ?? properties.permissionID
+        if (requestID) cancelPermission(requestID)
       }
 
       if (event.type === "session.idle") {
@@ -84,9 +110,6 @@ export const TerminalNotifierPlugin: Plugin = async ({ client, directory }) => {
       if (event.type === "session.error") {
         handleEvent(config, "error", projectName)
       }
-    },
-    "permission.ask": async () => {
-      handleEvent(config, "permission", projectName)
     },
     "tool.execute.before": async (input) => {
       if (input.tool === "question") {
