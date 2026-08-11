@@ -1,0 +1,19 @@
+src/index.ts
+  s_0d2a07bb610774::t_50c7dc1bd11ad4 7-8,56-73,83,87-93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "35dfa93cdd36a2f96e7d1aab400e937ff4a16e05",
+  "prompts": {},
+  "sessions": {
+    "s_0d2a07bb610774": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_00df9d8afffe9TtQ1A20RPCPkX",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Mathew Jacob <mathew@cloudflare.com>"
+    }
+  }
+}
